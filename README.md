@@ -1,3 +1,15 @@
+1) Для запуска контейнеров: 
+переходим в nosql2h23-smart-farm/SmartFarm.Web и пишем команду:
+docker-compose up --build
+2) переходим на localhost:8080
+ 
+Для того, чтобы применились изменения, особенно те, что в Blazor, необходимо пересобрать проект и перезапустить контейнер сервера
+
+2 вариант для разработчиков: 
+1) в appsettings.json меняем ConnectionString на mongodb://localhost:27017/TestDb"
+2) Запускаем контейнер mongo:  docker run -d -p 27017:27017 --name mongo mongo:latest
+3) Запускаем через Visual studio сервер.
+
 # nosql_template
 
 
