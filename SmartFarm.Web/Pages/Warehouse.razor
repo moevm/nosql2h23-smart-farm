@@ -1,0 +1,93 @@
+@page "/warehouse"
+
+<h3>Склад</h3>
+
+<div style="display: flex; flex-direction: column">
+    <div style="display: flex; flex-direction: row">
+        <RadzenLabel Text="Название" />
+        <RadzenTextBox Placeholder="Название" @bind-Value="_model.Name"/>
+    </div>
+    <div style="display: flex; flex-direction: row">
+        <RadzenLabel Text="Единица измерения" />
+        <RadzenTextBox Placeholder="Единица измерения" @bind-Value="_model.MeasureUnit"/>
+    </div>
+    <RadzenButton Click="@AddData" Text="Добавить" Style="width: 200px;" ButtonStyle="ButtonStyle.Primary"/>
+</div>
+
+<RadzenDataGrid @ref="@_grid" Data="@_data" Count="@_count" TItem="WarehouseItem" LoadData="@LoadData">
+    <Columns>
+        <RadzenDataGridColumn TItem="WarehouseItem" Property="Id" Title="ID"/>
+        <RadzenDataGridColumn TItem="WarehouseItem" Property="Name" Title="Название"/>
+        <RadzenDataGridColumn TItem="WarehouseItem" Property="Amount" Title="Количество"/>
+        <RadzenDataGridColumn TItem="WarehouseItem" Property="MeasureUnit" Title="Ед. измерения"/>
+        <RadzenDataGridColumn TItem="WarehouseItem" Title="Действия">
+            <Template Context="item">
+                <RadzenButton Text="+" Click="@(_ => ChangeAmount(item.Id))" />
+                <RadzenButton Text="-" Click="@(_ => ChangeAmount(item.Id, false))" />
+                <RadzenButton Icon="highlight_off" ButtonStyle="ButtonStyle.Danger" Click="@(_ => DeleteItem(item))"/>
+                <RadzenButton Icon="input" ButtonStyle="ButtonStyle.Secondary" Click="@(_ => EditItem(item))"/>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+@code{
+    [Inject] ApplicationMongoContext MongoContext { get; set; }
+    [Inject] DialogService DialogService { get; set; }
+    
+    private WarehouseItem _model = new();
+    private List<WarehouseItem> _data = new();
+    private int _count;
+    private RadzenDataGrid<WarehouseItem> _grid;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await _grid.Reload();
+    }
+    
+    private void LoadData(LoadDataArgs args)
+    {
+        _data = MongoContext.Warehouse.AsNoTracking().ToList();
+        _count = _data.Count;
+    }
+    
+    private async void AddData()
+    {
+        _model.Amount = 0;
+        if (MongoContext.Warehouse.FirstOrDefault(_ => _.Name == _model.Name && _.MeasureUnit == _model.MeasureUnit) is not null) return;
+        MongoContext.Warehouse.Add(_model);
+        await MongoContext.SaveChangesAsync();
+        _model = new();
+        await _grid.Reload();   
+    }
+    
+    private async Task EditItem(WarehouseItem item)
+    {        
+        DialogService.OnClose += EditClose;
+        await DialogService.OpenAsync<EditItemDialog>("Редактировать",
+            new Dictionary<string, object> { { "Item", item } });
+    }
+
+    private void EditClose(object? obj)
+    {
+        DialogService.OnClose -= EditClose;
+        if (obj is null) return;
+        _grid.Reload();
+    }
+    
+    private void DeleteItem(WarehouseItem item)
+    {
+        MongoContext.Warehouse.Remove(item);
+        MongoContext.SaveChangesAsync();
+        _grid.Reload();
+    }
+    
+    private async void ChangeAmount(string itemId, bool isAdd = true)
+    {
+        var item = MongoContext.Warehouse.First(_ => _.Id == itemId);
+        item.Amount += isAdd ? 1 : -1;
+        if (item.Amount < 0) item.Amount = 0;
+        await MongoContext.SaveChangesAsync();
+        await _grid.Reload();
+    }
+}

@@ -1,0 +1,56 @@
+<div>
+    <RadzenLabel Text="Название"/>
+    <RadzenTextBox Placeholder="Название" @bind-Value="_model.Name"/>
+</div>
+<div>
+    <RadzenLabel Text="Количество"/>
+    <RadzenNumeric Placeholder="Количество" @bind-Value="_model.Amount"/>
+</div>
+<div>
+    <RadzenLabel Text="Единица измерения"/>
+    <RadzenTextBox Placeholder="Единица измерения" @bind-Value="_model.MeasureUnit"/>
+</div>
+
+<RadzenButton Click="@Close" Text="Сохранить"/>
+
+@code {
+    [Inject] ApplicationMongoContext MongoContext { get; set; }
+    [Inject] DialogService DialogService { get; set; }
+    [Parameter][EditorRequired] public WarehouseItem Item { get; set; }
+
+    private ItemEditModel _model;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _model = new()
+        {
+            Name = Item.Name,
+            Amount = Item.Amount,
+            MeasureUnit = Item.MeasureUnit,
+        };
+    }
+    
+    private void Close()
+    {
+        var item = MongoContext.Warehouse.FirstOrDefault(_ => _.Id == Item.Id);
+        if (item is null)
+        {
+            DialogService.Close();
+            return;
+        }
+        
+        item.Name = _model.Name;
+        item.Amount = _model.Amount ?? 0;
+        item.MeasureUnit = _model.MeasureUnit;
+        MongoContext.SaveChanges();
+        DialogService.Close(item);   
+    }
+    
+    private class ItemEditModel
+    {
+        public string Name { get; set; } = null!;
+        public int? Amount { get; set; }
+        public string MeasureUnit { get; set; } = null!;
+    }
+}
