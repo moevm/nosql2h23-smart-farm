@@ -1,4 +1,5 @@
 using MongoFramework;
+using Radzen;
 using SmartFarm.Web.Data;
 
 namespace SmartFarm.Web
@@ -10,6 +11,8 @@ namespace SmartFarm.Web
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddRazorPages();
+            builder.Services.AddRadzenComponents();
+            builder.Services.AddScoped<DialogService>();
             builder.Services.AddServerSideBlazor();
             builder.Services.AddTransient<IMongoDbConnection>(
                 _ => MongoDbConnection.FromConnectionString(builder.Configuration.GetConnectionString("MongoConnectionString"))
