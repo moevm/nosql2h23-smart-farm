@@ -1,0 +1,90 @@
+<div style="display: flex; flex-direction: column">
+    <div style="display: flex; flex-direction: row">
+        <RadzenLabel Text="Имя: "/>
+        <RadzenTextBox Placeholder="Имя" @bind-Value="_model.Name"/>
+    </div>
+    
+    <div style="display: flex; flex-direction: row">
+        <RadzenLabel Text="Фамилия: "/>
+        <RadzenTextBox Placeholder="Фамилия" @bind-Value="_model.Surname"/>
+    </div>
+    
+    <div style="display: flex; flex-direction: row">
+        <RadzenLabel Text="Отчество: "/>
+        <RadzenTextBox Placeholder="Отчество" @bind-Value="_model.Patronymic"/>
+    </div>
+    
+    <div style="display: flex; flex-direction: row">
+        <RadzenLabel Text="Роль: "/>
+        <RadzenDropDown TValue="UserRole" @bind-Value="_model.Role" Placeholder="Роль"
+                        Data="Enum.GetValues(typeof(UserRole)).Cast<UserRole>().ToDictionary(t => t.ToString(), t => t)"
+                        TextProperty="Key"
+                        ValueProperty="Value"/>
+    </div>
+    
+    <div style="display: flex; flex-direction: row">
+        <RadzenLabel Text="Номер команды: "/>
+        <RadzenNumeric Placeholder="Номер команды" @bind-Value="_model.TeamId"/>
+    </div>
+    
+    <div style="display: flex; flex-direction: row">
+        <RadzenLabel Text="Дополнительно: "/>
+        <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
+    </div>
+    
+    <RadzenButton Click="@Close" Text="Сохранить"/>
+</div>
+
+
+@code {
+    [Inject] ApplicationMongoContext MongoContext { get; set; }
+    [Inject] DialogService DialogService { get; set; }
+    [Parameter][EditorRequired] public User User { get; set; }
+
+    private UserEditModel _model;
+    private UserTask _newTask = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _model = new()
+        {
+            Name = User.Name,
+            Surname = User.Surname,
+            Patronymic = User.Patronymic,
+            TeamId = User.TeamId,
+            Role = User.Role,
+            AdditionalInfo = User.AdditionalInfo,
+            IsWorking = User.IsWorking,
+            Tasks = User.Tasks?.Select(_ => _).ToList() ?? new()
+        };
+    }
+
+    private void Close()
+    {
+        var item = MongoContext.Users.FirstOrDefault(_ => _.Id == User.Id);
+        if (item is null) return;
+        item.Name = _model.Name;
+        item.Surname = _model.Surname;
+        item.Patronymic = _model.Patronymic;
+        item.TeamId = _model.TeamId;
+        item.Role = _model.Role;
+        item.AdditionalInfo = _model.AdditionalInfo;
+        item.IsWorking = _model.IsWorking;
+        item.Tasks = _model.Tasks?.Select(_ => _).ToList() ?? new();
+        MongoContext.SaveChanges();
+        DialogService.Close(item);   
+    }
+    
+    private class UserEditModel
+    {
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public string Patronymic { get; set; }
+        public UserRole Role { get; set; }
+        public int? TeamId { get; set; }
+        public bool IsWorking { get; set; }
+        public string AdditionalInfo { get; set; }
+        public List<UserTask>? Tasks { get; set; }
+    }
+}
