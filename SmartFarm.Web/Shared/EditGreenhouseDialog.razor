@@ -1,0 +1,151 @@
+<div style="display: flex; flex-direction: column">
+    <div>
+        <RadzenLabel>Номер</RadzenLabel>
+        <RadzenNumeric Min="0" Placeholder="Номер" @bind-Value="_model.Number"/>
+    </div>
+    <div>
+        <RadzenLabel>Адрес</RadzenLabel>
+        <RadzenTextBox Placeholder="Адрес" @bind-Value="_model.Street"/>
+    </div>
+    <div>
+        <RadzenLabel>Температура</RadzenLabel>
+        <RadzenNumeric TValue="float" Step="0.1" Placeholder="Температура" @bind-Value="_model.Temperature"/>
+    </div>
+    <div>
+        <RadzenLabel>Степень освещённости</RadzenLabel>
+        <RadzenNumeric TValue="float" Step="0.1" Placeholder="Степень освещённости" @bind-Value="_model.IlluminationDegree"/>
+    </div>
+    <div>
+        <RadzenLabel>Статус</RadzenLabel>
+        <RadzenDropDown TValue="GreenhouseStatus" @bind-Value="_model.Status" Placeholder="Статус"
+                                        Data="Enum.GetValues(typeof(GreenhouseStatus))
+                                            .Cast<GreenhouseStatus>()
+                                            .ToDictionary(t => t.ToString(), t => t)"
+                                        TextProperty="Key"
+                                        ValueProperty="Value"/>
+    </div>
+    <div>
+        <RadzenLabel>Новая команда</RadzenLabel>
+        <RadzenNumeric @bind-Value="_newTeamId"/>
+        <RadzenButton Text="Добавить" Click="NewTeam"/>
+        <div>
+            @if (_model.TeamIds is {} teams)
+            {
+                @foreach (var team in teams)
+                {
+                    <div style="display: flex; flex-direction: row">
+                        @team <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Удалить" Click="_ => DeleteTeam(team)" />
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    <RadzenFieldset Text="Новое растение">
+        <RadzenLabel Text="Тип" />
+        <RadzenTextBox Placeholder="Тип" @bind-Value="_newPlant.Type"/>
+        <RadzenLabel Text="Сорт" />
+        <RadzenTextBox Placeholder="Сорт" @bind-Value="_newPlant.Sort"/>
+        <RadzenLabel Text="Количество" />
+        <RadzenNumeric @bind-Value="_newPlant.Count"/>
+        <RadzenButton Text="Добавить" Click="NewPlant"/>
+        <div>
+            @if (_model.Plants is {} plants)
+            {
+                @foreach (var plant in plants)
+                {
+                    <div style="display: flex; flex-direction: row">
+                        @plant.Type -> @plant.Sort -> @plant.Count <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Удалить" Click="_ => DeletePlant(plant)"/>
+                    </div>
+                }
+            }
+        </div>
+    </RadzenFieldset>
+    <div>
+        <RadzenLabel>Дополнительно</RadzenLabel>
+        <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
+    </div>
+    <RadzenButton Click="@Close" Text="Сохранить"/>
+</div>
+
+
+@code {
+    [Inject] ApplicationMongoContext MongoContext { get; set; }
+    [Inject] DialogService DialogService { get; set; }
+    [Parameter][EditorRequired] public Greenhouse Greenhouse { get; set; }
+
+    private int? _newTeamId;
+    
+    private GreenhouseEditModel _model;
+    private Plant _newPlant = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _model = new()
+        {
+            Number = Greenhouse.Number,
+            Street = Greenhouse.Street,
+            TeamIds = Greenhouse.TeamIds?.Select(_ => _).ToList() ?? new(),
+            Temperature = Greenhouse.Temperature,
+            IlluminationDegree = Greenhouse.IlluminationDegree,
+            AdditionalInfo = Greenhouse.AdditionalInfo,
+            Status = Greenhouse.Status,
+            Plants = Greenhouse.Plants?.Select(_ => _).ToList() ?? new()
+        };
+    }
+
+    private void Close()
+    {
+        var item = MongoContext.Greenhouses.FirstOrDefault(_ => _.Id == Greenhouse.Id);
+        if (item is null) return;
+        item.Number = _model.Number;
+        item.Street = _model.Street;
+        item.TeamIds = _model.TeamIds?.Select(_ => _).ToList() ?? new();
+        item.Temperature = _model.Temperature;
+        item.IlluminationDegree = _model.IlluminationDegree;
+        item.AdditionalInfo = _model.AdditionalInfo;
+        item.Status = _model.Status;
+        item.Plants = _model.Plants?.Select(_ => _).ToList() ?? new();
+        MongoContext.SaveChanges();
+        DialogService.Close(item);   
+    }
+
+    private void NewTeam()
+    {
+        if(_newTeamId is {} newId && _model.TeamIds is {} teams && !teams.Contains(newId)) 
+            teams.Add(newId);
+
+        _newTeamId = 0;
+    }
+
+    private void DeleteTeam(int team)
+    {
+        _model.TeamIds?.Remove(team);
+    }
+
+    private void NewPlant()
+    {
+        if (_newPlant is {Type: not null, Sort: not null, Count: > 0} newPlant && _model.Plants is {} plants
+            && !plants.Any(_ => _.Type == newPlant.Type && _.Sort == newPlant.Sort))
+            plants.Add(newPlant);
+
+        _newPlant = new();
+    }
+    
+    private void DeletePlant(Plant plant)
+    {
+        _model.Plants?.Remove(plant);
+    }
+    
+    private class GreenhouseEditModel
+    {
+        public int Number { get; set; }
+        public string Street { get; set; } = null!;
+        public List<int>? TeamIds { get; set; }
+        public float Temperature { get; set; }
+        public float IlluminationDegree { get; set; }
+        public string AdditionalInfo { get; set; } = null!;
+        public GreenhouseStatus Status { get; set; }
+        public List<Plant>? Plants { get; set; }
+    }
+}
