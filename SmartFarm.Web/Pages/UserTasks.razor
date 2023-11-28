@@ -1,0 +1,115 @@
+@page "/tasks/{UserId}"
+<h3>Задания пользователя</h3>
+
+<RadzenFieldset Text="Новое задание" Style="display: flex; flex-direction: column">
+    <div>
+        <RadzenLabel Text="Название"/>
+        <RadzenTextBox Placeholder="Название" @bind-Value="_model.Title"/>
+    </div>
+    <div>
+        <RadzenLabel Text="Описание"/>
+        <RadzenTextBox Placeholder="Описание" @bind-Value="_model.Description"/>
+    </div>
+    <div>
+        <RadzenLabel Text="От"/>
+        <RadzenDatePicker Placeholder="От" @bind-Value="_model.From"/>
+    </div>
+    <div>
+        <RadzenLabel Text="До"/>
+        <RadzenDatePicker Placeholder="До" @bind-Value="_model.To"/>
+    </div>
+    <div>
+        <RadzenLabel Text="Номер теплицы"/>
+        <RadzenNumeric Min="0" Placeholder="Номер теплицы" @bind-Value="_model.GreenhouseNumber"/>
+    </div>
+    <RadzenButton Text="Добавить" Click="AddData"/>
+</RadzenFieldset>
+
+<RadzenDataGrid @ref="@_grid" Data="@_user.Tasks" Count="@(_user.Tasks?.Count ?? 0)" TItem="UserTask" LoadData="@LoadData"
+                Style="width: 80vw;" AllowColumnResize AllowFiltering AllowPaging ColumnWidth="300px" AllowSorting PageSize="5">
+    <Columns>
+         <RadzenDataGridColumn Frozen TItem="UserTask" Title="Действия">
+            <Template Context="task">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="highlight_off" Click="_ => DeleteTask(task)"/>
+                <RadzenButton Click="@(_ => EditTask(task))" Icon="input" ButtonStyle="ButtonStyle.Secondary"/>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Frozen Width="100px" TItem="UserTask" Property="Id" Title="ID"/>
+        <RadzenDataGridColumn Frozen Width="200px" TItem="UserTask" Property="Title" Title="Название"/>
+        <RadzenDataGridColumn TItem="UserTask" Property="Description" Title="Описание"/>
+        <RadzenDataGridColumn TItem="UserTask" Property="CreatedAt" Title="Когда создано"/>
+        <RadzenDataGridColumn TItem="UserTask" Property="CreatedBy" Title="Кем создано"/>
+        <RadzenDataGridColumn TItem="UserTask" Property="From" Title="От"/>
+        <RadzenDataGridColumn TItem="UserTask" Property="To" Title="До"/>
+        <RadzenDataGridColumn TItem="UserTask" Property="GreenhouseNumber" Title="Номер теплицы"/>
+        <RadzenDataGridColumn TItem="UserTask" Property="IsCompleted" Title="Выполнено?"/>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    [Inject] ApplicationMongoContext MongoContext { get; set; }
+    [Inject] DialogService DialogService { get; set; }
+    
+    [Parameter][EditorRequired] public string UserId { get; set; }
+
+    private RadzenDataGrid<UserTask> _grid;
+    private UserTask _model = new();
+    private User _user;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _user = MongoContext.Users.First(_ => _.Id == UserId);
+    }
+    
+    private void LoadData(LoadDataArgs args)
+    {
+        _user = MongoContext.Users.First(_ => _.Id == UserId);
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await _grid.Reload();
+    }
+    
+    
+
+    private async void AddData()
+    {
+        if (_model is {Title: not null, Description: not null} newTask)
+        {
+            _user.Tasks ??= new();
+            newTask.Id = Guid.NewGuid();
+            newTask.CreatedAt = DateTime.Now;
+            newTask.CreatedBy = "admin";
+            _user.Tasks.Add(newTask);
+            await MongoContext.SaveChangesAsync();
+        }
+        
+        _model = new();
+        await _grid.Reload();
+    }
+    
+    private void DeleteTask(UserTask task)
+    {
+        _user.Tasks?.Remove(task);
+        MongoContext.SaveChangesAsync();
+        _grid.Reload();
+    }
+    
+    private async Task EditTask(UserTask task)
+    {        
+        DialogService.OnClose += EditClose;
+        await DialogService.OpenAsync<EditTaskDialog>("Редактировать",
+            new Dictionary<string, object> { { "Task", task }, {"UserId", UserId} });
+    }
+
+    private void EditClose(object? obj)
+    {
+        DialogService.OnClose -= EditClose;
+        if (obj is null) return;
+        _grid.Reload();
+    }
+}

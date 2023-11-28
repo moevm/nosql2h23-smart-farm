@@ -1,0 +1,72 @@
+<div>
+    <RadzenLabel Text="Название"/>
+    <RadzenTextBox Placeholder="Название" @bind-Value="_model.Title"/>
+</div>
+<div>
+    <RadzenLabel Text="Описание"/>
+    <RadzenTextBox Placeholder="Описание" @bind-Value="_model.Description"/>
+</div>
+<div>
+    <RadzenLabel Text="От"/>
+    <RadzenDatePicker Placeholder="От" @bind-Value="_model.From"/>
+</div>
+<div>
+    <RadzenLabel Text="До"/>
+    <RadzenDatePicker Placeholder="До" @bind-Value="_model.To"/>
+</div>
+<div>
+    <RadzenLabel Text="Номер теплицы"/>
+    <RadzenNumeric Min="0" Placeholder="Номер теплицы" @bind-Value="_model.GreenhouseNumber"/>
+</div>
+
+<RadzenButton Click="@Close" Text="Сохранить"/>
+
+@code {
+    [Inject] ApplicationMongoContext MongoContext { get; set; }
+    [Inject] DialogService DialogService { get; set; }
+    [Parameter][EditorRequired] public UserTask Task { get; set; }
+    [Parameter][EditorRequired] public string UserId { get; set; }
+
+    private TaskEditModel _model;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _model = new()
+        {
+            Title = Task.Title,
+            Description = Task.Description,
+            From = Task.From,
+            To = Task.To,
+            GreenhouseNumber = Task.GreenhouseNumber
+        };
+    }
+    
+    private void Close()
+    {
+        var user = MongoContext.Users.FirstOrDefault(_ => _.Id == UserId);
+        var item = user?.Tasks?.FirstOrDefault(_ => _.Id == Task.Id);
+        if (user is null || item is null)
+        {
+            DialogService.Close();
+            return;
+        }
+        
+        item.Title = _model.Title;
+        item.Description = _model.Description;
+        item.From = _model.From;
+        item.To = _model.To;
+        item.GreenhouseNumber = _model.GreenhouseNumber;
+        MongoContext.SaveChanges();
+        DialogService.Close(item);   
+    }
+    
+    private class TaskEditModel
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public DateTime From { get; set; }
+        public DateTime To { get; set; }
+        public int? GreenhouseNumber { get; set; }
+    }
+}
