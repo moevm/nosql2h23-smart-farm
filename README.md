@@ -6,13 +6,9 @@ docker-compose up --build
 Для того, чтобы применились изменения, особенно те, что в Blazor, необходимо пересобрать проект и перезапустить контейнер сервера
 
 2 вариант для разработчиков: 
-1) в appsettings.json меняем ConnectionString на mongodb://localhost:27017/TestDb"
+1) В appsettings.json меняем ConnectionString на mongodb://localhost:27017/TestDb"
 2) Запускаем контейнер mongo:  docker run -d -p 27017:27017 --name mongo mongo:latest
 3) Запускаем через Visual studio сервер.
-
-## гифка скринкаст возможно ещё грузится, подождите
-
-![](https://github.com/moevm/nosql2h23-smart-farm/blob/main/smrtfarm_demo.gif)
 
 # nosql_template
 
