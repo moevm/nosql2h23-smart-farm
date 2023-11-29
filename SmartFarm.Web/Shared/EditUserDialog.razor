@@ -1,40 +1,42 @@
-<div style="display: flex; flex-direction: column">
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Имя: "/>
-        <RadzenTextBox Placeholder="Имя" @bind-Value="_model.Name"/>
-    </div>
-    
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Фамилия: "/>
-        <RadzenTextBox Placeholder="Фамилия" @bind-Value="_model.Surname"/>
-    </div>
-    
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Отчество: "/>
-        <RadzenTextBox Placeholder="Отчество" @bind-Value="_model.Patronymic"/>
-    </div>
-    
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Роль: "/>
-        <RadzenDropDown TValue="UserRole" @bind-Value="_model.Role" Placeholder="Роль"
-                        Data="Enum.GetValues(typeof(UserRole)).Cast<UserRole>().ToDictionary(t => t.ToString(), t => t)"
-                        TextProperty="Key"
-                        ValueProperty="Value"/>
-    </div>
-    
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Номер команды: "/>
-        <RadzenNumeric Placeholder="Номер команды" @bind-Value="_model.TeamId"/>
-    </div>
-    
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Дополнительно: "/>
-        <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
-    </div>
-    
-    <RadzenButton Click="@Close" Text="Сохранить"/>
-</div>
 
+<RadzenFieldset style="margin: 20px 0;" Text="Редактировать пользователя"> 
+    <div style="display: flex; flex-direction: column">
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel Text="Имя: "/>
+            <RadzenTextBox Placeholder="Имя" @bind-Value="_model.Name"/>
+        </div>
+        
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel Text="Фамилия: "/>
+            <RadzenTextBox Placeholder="Фамилия" @bind-Value="_model.Surname"/>
+        </div>
+        
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel Text="Отчество: "/>
+            <RadzenTextBox Placeholder="Отчество" @bind-Value="_model.Patronymic"/>
+        </div>
+        
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel Text="Роль: "/>
+            <RadzenDropDown TValue="UserRole" @bind-Value="_model.Role" Placeholder="Роль"
+                            Data="Enum.GetValues(typeof(UserRole)).Cast<UserRole>().ToDictionary(t => t.ToString(), t => t)"
+                            TextProperty="Key"
+                            ValueProperty="Value"/>
+        </div>
+        
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel Text="Номер команды: "/>
+            <RadzenNumeric Placeholder="Номер команды" @bind-Value="_model.TeamId"/>
+        </div>
+        
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel Text="Дополнительно: "/>
+            <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
+        </div>
+        
+        <RadzenButton class="block_data" Click="@Close" Text="Сохранить"/>
+    </div>
+</RadzenFieldset>
 
 @code {
     [Inject] ApplicationMongoContext MongoContext { get; set; }

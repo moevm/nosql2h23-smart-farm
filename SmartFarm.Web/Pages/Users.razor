@@ -1,44 +1,48 @@
 @page "/users"
-<h3>Пользователи</h3>
-<div style="display: flex; flex-direction: column">
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Имя: "/>
-        <RadzenTextBox Placeholder="Имя" @bind-Value="_model.Name"/>
-    </div>
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Фамилия: "/>
-        <RadzenTextBox Placeholder="Фамилия" @bind-Value="_model.Surname"/>
-    </div>
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Отчество: "/>
-        <RadzenTextBox Placeholder="Отчество" @bind-Value="_model.Patronymic"/>
-    </div>
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Роль: "/>
-        <RadzenDropDown TValue="UserRole" @bind-Value="_model.Role" Placeholder="Роль"
-                        Data="Enum.GetValues(typeof(UserRole)).Cast<UserRole>().ToDictionary(t => t.ToString(), t => t)"
-                        TextProperty="Key"
-                        ValueProperty="Value"/>
-    </div>
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Номер команды: "/>
-        <RadzenNumeric Placeholder="Номер команды" @bind-Value="_model.TeamId"/>
-    </div>
-    <div style="display: flex; flex-direction: row">
-        <RadzenLabel Text="Дополнительно: "/>
-        <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
-    </div>
-    
-    <RadzenButton Click="@AddData" Style="width: 200px" Text="Добавить" ButtonStyle="ButtonStyle.Primary"/>
-</div>
 
+
+<h3>Пользователи</h3>
+
+<RadzenFieldset style="margin: 20px 0;" Text="Добавить пользователя">
+    <div style="display: flex; flex-direction: column">
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Имя: "/>
+            <RadzenTextBox Placeholder="Имя" @bind-Value="_model.Name"/>
+        </div>
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Фамилия: "/>
+            <RadzenTextBox Placeholder="Фамилия" @bind-Value="_model.Surname"/>
+        </div>
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Отчество: "/>
+            <RadzenTextBox Placeholder="Отчество" @bind-Value="_model.Patronymic"/>
+        </div>
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Роль: "/>
+            <RadzenDropDown TValue="UserRole" @bind-Value="_model.Role" Placeholder="Роль"
+                            Data="Enum.GetValues(typeof(UserRole)).Cast<UserRole>().ToDictionary(t => t.ToString(), t => t)"
+                            TextProperty="Key"
+                            ValueProperty="Value"/>
+        </div>
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Номер команды: "/>
+            <RadzenNumeric Placeholder="Номер команды" @bind-Value="_model.TeamId"/>
+        </div>
+        <div class="block_data" style="display: flex; flex-direction: row">
+            <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Дополнительно: "/>
+            <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
+        </div>
+        
+        <RadzenButton class="block_data" Click="@AddData" Style="width: 200px" Text="Добавить" ButtonStyle="ButtonStyle.Primary"/>
+    </div>
+</RadzenFieldset>
 
 <RadzenDataGrid @ref="@_grid" Data="@_data" Count="@_count" TItem="User" LoadData="@LoadData"
-                Style="width: 80vw;" AllowColumnResize AllowFiltering AllowPaging ColumnWidth="300px" AllowSorting PageSize="5">
+                Style="width: 90vw;" AllowColumnResize AllowFiltering AllowPaging ColumnWidth="300px" AllowSorting PageSize="5">
     <Columns>
-         <RadzenDataGridColumn Frozen TItem="User" Title="Действия">
+         <RadzenDataGridColumn Width="200px" Frozen TItem="User" Title="Действия">
             <Template Context="user">
-                <RadzenButton Click="@(_ => EditUser(user))" Icon="input" ButtonStyle="ButtonStyle.Secondary"/>
+                <RadzenButton Click="@(_ => EditUser(user))" Icon="build" ButtonStyle="ButtonStyle.Secondary"/>
                 <RadzenButton Click="@(_ => DeleteUser(user))" Icon="highlight_off" ButtonStyle="ButtonStyle.Danger"/>
                 <NavLink href=@($"tasks/{user.Id}") Match="NavLinkMatch.All">
                     <RadzenButton Text="Задания"/>
@@ -47,12 +51,12 @@
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Frozen Width="100px" TItem="User" Property="Id" Title="ID"/>
         <RadzenDataGridColumn Frozen Width="200px" TItem="User" Property="Name" Title="Имя"/>
-        <RadzenDataGridColumn TItem="User" Property="Surname" Title="Фамилия"/>
-        <RadzenDataGridColumn TItem="User" Property="Patronymic" Title="Отчество"/>
-        <RadzenDataGridColumn TItem="User" Property="Role" Title="Роль"/>
-        <RadzenDataGridColumn TItem="User" Property="TeamId" Title="Номер команды"/>
-        <RadzenDataGridColumn TItem="User" Property="IsWorking" Title="На работе?"/>
-        <RadzenDataGridColumn TItem="User" Property="AdditionalInfo" Title="Дополнительно"/>
+        <RadzenDataGridColumn Width="150px" TItem="User" Property="Surname" Title="Фамилия"/>
+        <RadzenDataGridColumn Width="150px" TItem="User" Property="Patronymic" Title="Отчество"/>
+        <RadzenDataGridColumn Width="130px" TItem="User" Property="Role" Title="Роль"/>
+        <RadzenDataGridColumn Width="170px" TItem="User" Property="TeamId" Title="Номер команды"/>
+        <RadzenDataGridColumn Width="170px" TItem="User" Property="IsWorking" Title="На работе?"/>
+        <RadzenDataGridColumn Width="200px" TItem="User" Property="AdditionalInfo" Title="Дополнительно"/>
     </Columns>
 </RadzenDataGrid>
 @code{
