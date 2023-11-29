@@ -1,0 +1,191 @@
+@page "/Logs"
+@using SmartFarm.Web.Services
+@using SmartFarm.Web.Data.LogModels
+
+<h3>Logs</h3>
+<div style="display: flex; flex-direction: column">
+    <div style="display: flex; flex-direction: row">
+        <RadzenDropDown Data="_tables" @bind-Value="_tableName"/>
+        <RadzenButton Text="Посмотреть логи" Click="@GetLogs"/>
+    </div>
+    <RadzenFieldset Text="Лог пользователя">
+        <div style="display: flex; flex-direction: row">
+            <RadzenTextBox Placeholder="UserId" @bind-Value="_newUserLogModel.UserId"/>
+            <RadzenTextBox Placeholder="EditedBy" @bind-Value="_newUserLogModel.EditedBy"/>
+            <RadzenTextBox Placeholder="EditField" @bind-Value="_newUserLogModel.EditField"/>
+            <RadzenTextBox Placeholder="PreviousValue" @bind-Value="_newUserLogModel.PreviousValue"/>
+            <RadzenTextBox Placeholder="NewValue" @bind-Value="_newUserLogModel.NewValue"/>
+            <RadzenButton Text="+" Click="@(_ => { Logger.Write(_newUserLogModel, "users"); _newUserLogModel = new(); })"/>
+        </div>
+    </RadzenFieldset>
+    
+    <RadzenFieldset Text="Лог задачи">
+        <div style="display: flex; flex-direction: row">
+            <RadzenTextBox Placeholder="TaskId" @bind-Value="_newTaskLogModel.TaskId"/>
+            <RadzenTextBox Placeholder="EditedBy" @bind-Value="_newTaskLogModel.EditedBy"/>
+            <RadzenTextBox Placeholder="EditField" @bind-Value="_newTaskLogModel.EditField"/>
+            <RadzenTextBox Placeholder="PreviousValue" @bind-Value="_newTaskLogModel.PreviousValue"/>
+            <RadzenTextBox Placeholder="NewValue" @bind-Value="_newTaskLogModel.NewValue"/>
+            <RadzenButton Text="+" Click="@(_ => { Logger.Write(_newTaskLogModel, "tasks"); _newTaskLogModel = new(); })"/>
+        </div>
+    </RadzenFieldset>
+    
+    <RadzenFieldset Text="Лог склада">
+        <div style="display: flex; flex-direction: row">
+            <RadzenTextBox Placeholder="UserId" @bind-Value="_newWarehouseLogModel.UserId"/>
+            <RadzenTextBox Placeholder="GreenhouseId" @bind-Value="_newWarehouseLogModel.GreenhouseId"/>
+            <RadzenTextBox Placeholder="WarehouseId" @bind-Value="_newWarehouseLogModel.WarehouseId"/>
+            <RadzenNumeric Placeholder="Amount" @bind-Value="_newWarehouseLogModel.Amount"/>
+            <RadzenButton Text="+" Click="@(_ => { Logger.Write(_newWarehouseLogModel, "warehouse"); _newWarehouseLogModel = new(); })"/>
+        </div>
+    </RadzenFieldset>
+    
+    <RadzenFieldset Text="Лог теплиц">
+        <div style="display: flex; flex-direction: row">
+            <RadzenTextBox Placeholder="UserId" @bind-Value="_newGreenhouseLogModel.UserId"/>
+            <RadzenDropDown TValue="string" @bind-Value="_newGreenhouseLogModel.Action" Placeholder="Action"
+                                    Data="Enum.GetNames(typeof(GreenhouseLogAction))"/>
+            <RadzenButton Text="+" Click="@(_ => { Logger.Write(_newGreenhouseLogModel, "greenhouses"); _newGreenhouseLogModel = new(); })"/>
+        </div>
+    </RadzenFieldset>
+    
+    <RadzenFieldset Text="Лог посещяемости">
+        <div style="display: flex; flex-direction: row">
+            <RadzenTextBox Placeholder="UserId" @bind-Value="_newAttendanceLogModel.UserId"/>
+            <RadzenDropDown TValue="string" @bind-Value="_newAttendanceLogModel.Placement" Placeholder="Placement"
+                                                Data="Enum.GetNames(typeof(PlacementType))"/>
+            <RadzenNumeric Min="0" Placeholder="GreenhouseNumber" @bind-Value="_newAttendanceLogModel.GreenhouseNumber"/>
+            <RadzenDropDown TValue="string" @bind-Value="_newAttendanceLogModel.Action" Placeholder="Action"
+                                                Data="Enum.GetNames(typeof(AttendanceAction))"/>
+            <RadzenButton Text="+" Click="@(_ => { Logger.Write(_newAttendanceLogModel, "attendance"); _newAttendanceLogModel = new(); })"/>
+        </div>
+    </RadzenFieldset>
+</div>
+
+@if (_showUsers)
+{
+    <RadzenDataGrid Data="_usersLogs" TItem="UserLogModel" Count="_usersLogs.Count" AllowPaging AllowSorting PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="UserLogModel" Property="Time" Title="Время"/>
+            <RadzenDataGridColumn TItem="UserLogModel" Property="UserId" Title="ID пользователя"/>
+            <RadzenDataGridColumn TItem="UserLogModel" Property="EditedBy" Title="Кем изменено"/>
+            <RadzenDataGridColumn TItem="UserLogModel" Property="EditField" Title="Что изменено"/>
+            <RadzenDataGridColumn TItem="UserLogModel" Property="PreviousValue" Title="Как было"/>
+            <RadzenDataGridColumn TItem="UserLogModel" Property="NewValue" Title="Как стало"/>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@if (_showTasks)
+{
+    <RadzenDataGrid Data="_tasksLogs" TItem="TaskLogModel" Count="_tasksLogs.Count" AllowPaging AllowSorting PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="TaskLogModel" Property="Time" Title="Время"/>
+            <RadzenDataGridColumn TItem="TaskLogModel" Property="TaskId" Title="ID задачи"/>
+            <RadzenDataGridColumn TItem="TaskLogModel" Property="EditedBy" Title="Кем изменено"/>
+            <RadzenDataGridColumn TItem="TaskLogModel" Property="EditField" Title="Что изменено"/>
+            <RadzenDataGridColumn TItem="TaskLogModel" Property="PreviousValue" Title="Как было"/>
+            <RadzenDataGridColumn TItem="TaskLogModel" Property="NewValue" Title="Как стало"/>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@if (_showWarehouse)
+{
+    <RadzenDataGrid Data="_warehouseLogs" TItem="WarehouseLogModel" Count="_warehouseLogs.Count" AllowPaging AllowSorting PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="WarehouseLogModel" Property="Time" Title="Время"/>
+            <RadzenDataGridColumn TItem="WarehouseLogModel" Property="UserId" Title="ID пользователя"/>
+            <RadzenDataGridColumn TItem="WarehouseLogModel" Property="GreenhouseId" Title="ID теплицы"/>
+            <RadzenDataGridColumn TItem="WarehouseLogModel" Property="WarehouseId" Title="ID предмета"/>
+            <RadzenDataGridColumn TItem="WarehouseLogModel" Property="Amount" Title="Количество"/>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@if (_showGreenhouse)
+{
+    <RadzenDataGrid Data="_greenhouseLogs" TItem="GreenhouseLogModel" Count="_greenhouseLogs.Count" AllowPaging AllowSorting PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="GreenhouseLogModel" Property="Time" Title="Время"/>
+            <RadzenDataGridColumn TItem="GreenhouseLogModel" Property="UserId" Title="ID пользователя"/>
+            <RadzenDataGridColumn TItem="GreenhouseLogModel" Property="Action" Title="Действие"/>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@if (_showAttendance)
+{
+    <RadzenDataGrid Data="_attendanceLogs" TItem="AttendanceLogModel" Count="_attendanceLogs.Count" AllowPaging AllowSorting PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="AttendanceLogModel" Property="Time" Title="Время"/>
+            <RadzenDataGridColumn TItem="AttendanceLogModel" Property="UserId" Title="ID пользователя"/>
+            <RadzenDataGridColumn TItem="AttendanceLogModel" Property="Placement" Title="Теплица/склад"/>
+            <RadzenDataGridColumn TItem="AttendanceLogModel" Property="GreenhouseNumber" Title="Номер теплицы"/>
+            <RadzenDataGridColumn TItem="AttendanceLogModel" Property="Action" Title="Действие"/>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code {
+    [Inject] ITimeLogger Logger { get; set; }
+
+    private readonly List<string> _tables = new() { "users", "warehouse", "tasks", "greenhouses", "attendance" };
+    
+    private string _tableName = "users";
+    private bool _showWarehouse;
+    private bool _showGreenhouse;
+    private bool _showUsers;
+    private bool _showTasks;
+    private bool _showAttendance;
+
+    private GreenhouseLogModel _newGreenhouseLogModel = new();
+    private WarehouseLogModel _newWarehouseLogModel = new();
+    private TaskLogModel _newTaskLogModel = new();
+    private UserLogModel _newUserLogModel = new();
+    private AttendanceLogModel _newAttendanceLogModel = new();
+    
+    private List<GreenhouseLogModel> _greenhouseLogs = new();
+    private List<WarehouseLogModel> _warehouseLogs = new();
+    private List<TaskLogModel> _tasksLogs = new();
+    private List<UserLogModel> _usersLogs = new();
+    private List<AttendanceLogModel> _attendanceLogs = new();
+    
+    private void GetLogs()
+    {
+        HideAllGrids();
+        switch (_tableName)
+        {
+           case "users":
+               _showUsers = true;
+               _usersLogs = Logger.ReadMeasurement<UserLogModel>(_tableName);
+               break;
+            case "warehouse":
+                _showWarehouse = true;
+                _warehouseLogs = Logger.ReadMeasurement<WarehouseLogModel>(_tableName);
+                break;
+            case "tasks":
+                _showTasks = true;
+                _tasksLogs = Logger.ReadMeasurement<TaskLogModel>(_tableName);
+                break;
+            case "greenhouses":
+                _showGreenhouse = true;
+                _greenhouseLogs = Logger.ReadMeasurement<GreenhouseLogModel>(_tableName);
+                break;
+            case "attendance":
+                _showAttendance = true;
+                _attendanceLogs = Logger.ReadMeasurement<AttendanceLogModel>(_tableName);
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private void HideAllGrids()
+    {
+        _showAttendance = false;
+        _showGreenhouse = false;
+        _showTasks = false;
+        _showUsers = false;
+        _showWarehouse = false;
+    }
+}
