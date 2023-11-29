@@ -1,63 +1,65 @@
 @page "/greenhouses"
-<h3>Greenhouses</h3>
-<div style="display: flex; flex-direction: column"></div>
-<div style="display: flex; flex-direction: row">
-    <RadzenLabel Text="Номер" />
-    <RadzenNumeric Min="0" Placeholder="Номер" @bind-Value="_model.Number"/>
-</div>
-
-<div style="display: flex; flex-direction: row">
-    <RadzenLabel Text="Адрес" />
-    <RadzenTextBox Placeholder="Адрес" @bind-Value="_model.Street"/>
-</div>
-
-<div style="display: flex; flex-direction: row">
-    <RadzenLabel Text="Температура" />
-    <RadzenNumeric TValue="float" Step="0.1" Placeholder="Температура" @bind-Value="_model.Temperature"/>
-</div>
-
-<div style="display: flex; flex-direction: row">
-    <RadzenLabel Text="Степень освещённости" />
-    <RadzenNumeric TValue="float" Step="0.1" Placeholder="Степень освещённости" @bind-Value="_model.IlluminationDegree"/>
-</div>
-
-<div style="display: flex; flex-direction: row">
-    <RadzenLabel Text="Статус" />
-    <RadzenDropDown TValue="GreenhouseStatus" @bind-Value="_model.Status" Placeholder="Статус"
-                    Data="Enum.GetValues(typeof(GreenhouseStatus)).Cast<GreenhouseStatus>().ToDictionary(t => t.ToString(), t => t)"
-                    TextProperty="Key"
-                    ValueProperty="Value"/>
-</div>
-
-<div style="display: flex; flex-direction: row">
-    <RadzenLabel Text="Дополнительно" />
-    <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
-</div>
-
-<RadzenButton Click="@AddData" Text="Добавить" Style="width:200px" ButtonStyle="ButtonStyle.Primary" />
+<RadzenFieldset style="margin: 20px 0;" Text="Добавить теплицу">
+    <div style="display: flex; flex-direction: column"></div>
+    <div class="block_data" style="display: flex; flex-direction: row;">
+        <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Номер" />
+        <RadzenNumeric Min="0" Placeholder="Номер" @bind-Value="_model.Number"/>
+    </div>
+    
+    <div class="block_data" style="display: flex; flex-direction: row;">
+        <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Адрес" />
+        <RadzenTextBox Placeholder="Адрес" @bind-Value="_model.Street"/>
+    </div>
+    
+    <div class="block_data" style="display: flex; flex-direction: row;">
+        <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Температура" />
+        <RadzenNumeric TValue="float" Step="0.1" Placeholder="Температура" @bind-Value="_model.Temperature"/>
+    </div>
+    
+    <div class="block_data" style="display: flex; flex-direction: row;">
+        <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Степень освещённости" />
+        <RadzenNumeric TValue="float" Step="0.1" Placeholder="Степень освещённости" @bind-Value="_model.IlluminationDegree"/>
+    </div>
+    
+    <div class="block_data" style="display: flex; flex-direction: row;">
+        <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Статус" />
+        <RadzenDropDown TValue="GreenhouseStatus" @bind-Value="_model.Status" Placeholder="Статус"
+                        Data="Enum.GetValues(typeof(GreenhouseStatus)).Cast<GreenhouseStatus>().ToDictionary(t => t.ToString(), t => t)"
+                        TextProperty="Key"
+                        ValueProperty="Value"/>
+    </div>
+    
+    <div class="block_data" style="display: flex; flex-direction: row;">
+        <RadzenLabel style="padding: 8px 10px 10px 0;" Text="Дополнительно" />
+        <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
+    </div>
+    
+    <RadzenButton Click="@AddData" Text="Добавить" Style="width:200px; padding: 10px; margin: 10px 0" ButtonStyle="ButtonStyle.Primary" />
+    
+</RadzenFieldset>
 
 <RadzenDataGrid @ref="@_grid" Data="@_data" Count="@_count" TItem="Greenhouse" LoadData="@LoadData"
-                Style="width: 80vw;" AllowColumnResize AllowFiltering AllowPaging ColumnWidth="300px" AllowSorting PageSize="5">
+                Style="width: 90vw;" AllowColumnResize AllowFiltering AllowPaging ColumnWidth="300px" AllowSorting PageSize="5">
     <Columns>
-         <RadzenDataGridColumn Frozen TItem="Greenhouse" Title="Действия">
+         <RadzenDataGridColumn  Width="100px" Frozen TItem="Greenhouse" Title="Действия">
             <Template Context="greenhouse">
-                <RadzenButton Click="@(_ => EditGreenhouse(greenhouse))" Icon="input" ButtonStyle="ButtonStyle.Secondary"/>
+                <RadzenButton Click="@(_ => EditGreenhouse(greenhouse))" Icon="build" ButtonStyle="ButtonStyle.Secondary"/>
                 <RadzenButton Click="@(_ => DeleteGreenhouse(greenhouse))" Icon="highlight_off" ButtonStyle="ButtonStyle.Danger"/>
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Frozen Width="50px" TItem="Greenhouse" Property="Id" Title="ID"/>
         <RadzenDataGridColumn Frozen Width="50px" TItem="Greenhouse" Property="Number" Title="Номер"/>
-        <RadzenDataGridColumn TItem="Greenhouse" Property="Street" Title="Адрес"/>
-        <RadzenDataGridColumn TItem="Greenhouse" Title="Команды с доступом">
+        <RadzenDataGridColumn Width="200px" TItem="Greenhouse" Property="Street" Title="Адрес"/>
+        <RadzenDataGridColumn Width="200px" TItem="Greenhouse" Title="Команды с доступом">
             <Template Context="greenhouse">
                 @string.Join(", ", greenhouse.TeamIds ?? new())
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Greenhouse" Property="Temperature" Title="Температура"/>
-        <RadzenDataGridColumn TItem="Greenhouse" Property="IlluminationDegree" Title="Освещённость"/>
-        <RadzenDataGridColumn TItem="Greenhouse" Property="AdditionalInfo" Title="Дополнительно"/>
-        <RadzenDataGridColumn TItem="Greenhouse" Property="Status" Title="Статус"/>
-        <RadzenDataGridColumn TItem="Greenhouse" Title="Высажено">
+        <RadzenDataGridColumn Width="150px" TItem="Greenhouse" Property="Temperature" Title="Температура"/>
+        <RadzenDataGridColumn Width="150px" TItem="Greenhouse" Property="IlluminationDegree" Title="Освещённость"/>
+        <RadzenDataGridColumn Width="300px" TItem="Greenhouse" Property="AdditionalInfo" Title="Дополнительно"/>
+        <RadzenDataGridColumn Width="150px" TItem="Greenhouse" Property="Status" Title="Статус"/>
+        <RadzenDataGridColumn Width="200px" TItem="Greenhouse" Title="Высажено">
             <Template Context="greenhouse">
                 @if (greenhouse.Plants is {} plants && plants.Any())
                 {
@@ -75,7 +77,12 @@
             </Template>
         </RadzenDataGridColumn>
     </Columns>
-</RadzenDataGrid>
+</RadzenDataGrid>    
+
+
+
+
+
 @code{
     [Inject] ApplicationMongoContext MongoContext { get; set; }
     [Inject] DialogService DialogService { get; set; }

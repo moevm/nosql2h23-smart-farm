@@ -1,17 +1,19 @@
-<div>
-    <RadzenLabel Text="Название"/>
-    <RadzenTextBox Placeholder="Название" @bind-Value="_model.Name"/>
-</div>
-<div>
-    <RadzenLabel Text="Количество"/>
-    <RadzenNumeric Placeholder="Количество" @bind-Value="_model.Amount"/>
-</div>
-<div>
-    <RadzenLabel Text="Единица измерения"/>
-    <RadzenTextBox Placeholder="Единица измерения" @bind-Value="_model.MeasureUnit"/>
-</div>
 
-<RadzenButton Click="@Close" Text="Сохранить"/>
+<RadzenFieldset style="margin: 20px 0;" Text="Редактировать вещь">
+    <div class="block_data">
+        <RadzenLabel Text="Название"/>
+        <RadzenTextBox Placeholder="Название" @bind-Value="_model.Name"/>
+    </div>
+    <div class="block_data">
+        <RadzenLabel Text="Количество"/>
+        <RadzenNumeric Placeholder="Количество" @bind-Value="_model.Amount"/>
+    </div>
+    <div class="block_data">
+        <RadzenLabel Text="Единица измерения"/>
+        <RadzenTextBox Placeholder="Единица измерения" @bind-Value="_model.MeasureUnit"/>
+    </div>
+ </RadzenFieldset>
+<RadzenButton class="block_data" Click="@Close" Text="Сохранить"/>
 
 @code {
     [Inject] ApplicationMongoContext MongoContext { get; set; }

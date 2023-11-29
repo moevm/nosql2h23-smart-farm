@@ -1,21 +1,21 @@
 <div style="display: flex; flex-direction: column">
-    <div>
+    <div class="block_data">
         <RadzenLabel>Номер</RadzenLabel>
         <RadzenNumeric Min="0" Placeholder="Номер" @bind-Value="_model.Number"/>
     </div>
-    <div>
+    <div class="block_data">
         <RadzenLabel>Адрес</RadzenLabel>
         <RadzenTextBox Placeholder="Адрес" @bind-Value="_model.Street"/>
     </div>
-    <div>
+    <div class="block_data">
         <RadzenLabel>Температура</RadzenLabel>
         <RadzenNumeric TValue="float" Step="0.1" Placeholder="Температура" @bind-Value="_model.Temperature"/>
     </div>
-    <div>
+    <div class="block_data">
         <RadzenLabel>Степень освещённости</RadzenLabel>
         <RadzenNumeric TValue="float" Step="0.1" Placeholder="Степень освещённости" @bind-Value="_model.IlluminationDegree"/>
     </div>
-    <div>
+    <div class="block_data">
         <RadzenLabel>Статус</RadzenLabel>
         <RadzenDropDown TValue="GreenhouseStatus" @bind-Value="_model.Status" Placeholder="Статус"
                                         Data="Enum.GetValues(typeof(GreenhouseStatus))
@@ -24,7 +24,7 @@
                                         TextProperty="Key"
                                         ValueProperty="Value"/>
     </div>
-    <div>
+    <div class="block_data">
         <RadzenLabel>Новая команда</RadzenLabel>
         <RadzenNumeric @bind-Value="_newTeamId"/>
         <RadzenButton Text="Добавить" Click="NewTeam"/>
@@ -40,14 +40,20 @@
             }
         </div>
     </div>
-    <RadzenFieldset Text="Новое растение">
-        <RadzenLabel Text="Тип" />
-        <RadzenTextBox Placeholder="Тип" @bind-Value="_newPlant.Type"/>
-        <RadzenLabel Text="Сорт" />
-        <RadzenTextBox Placeholder="Сорт" @bind-Value="_newPlant.Sort"/>
-        <RadzenLabel Text="Количество" />
-        <RadzenNumeric @bind-Value="_newPlant.Count"/>
-        <RadzenButton Text="Добавить" Click="NewPlant"/>
+    <RadzenFieldset class="block_data" Text="Новое растение">
+        <div class="block_data">
+            <RadzenLabel Text="Тип" />
+            <RadzenTextBox Placeholder="Тип" @bind-Value="_newPlant.Type"/>
+        </div>
+        <div class="block_data">
+              <RadzenLabel Text="Сорт" />
+              <RadzenTextBox Placeholder="Сорт" @bind-Value="_newPlant.Sort"/>       
+        </div>
+        <div class="block_data">
+            <RadzenLabel Text="Количество" />
+            <RadzenNumeric @bind-Value="_newPlant.Count"/>   
+        </div>
+        <RadzenButton class="block_data" Text="Добавить" Click="NewPlant"/>
         <div>
             @if (_model.Plants is {} plants)
             {
@@ -60,8 +66,8 @@
             }
         </div>
     </RadzenFieldset>
-    <div>
-        <RadzenLabel>Дополнительно</RadzenLabel>
+    <div class="block_data">
+        <RadzenLabel >Дополнительно</RadzenLabel>
         <RadzenTextArea Placeholder="Дополнительно" @bind-Value="_model.AdditionalInfo"/>
     </div>
     <RadzenButton Click="@Close" Text="Сохранить"/>
