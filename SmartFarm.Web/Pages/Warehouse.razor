@@ -1,4 +1,5 @@
 @page "/warehouse"
+@using MongoFramework.Linq
 
 <h3>Склад</h3>
 <RadzenFieldset style="margin: 20px 0;" Text="Добавить вещь на склад"> 
@@ -16,7 +17,8 @@
         <RadzenButton class="block_data" Click="@AddData" Text="Добавить" Style="width: 200px;" ButtonStyle="ButtonStyle.Primary"/>
     </div>
 </RadzenFieldset>
-<RadzenDataGrid @ref="@_grid" Data="@_data" Count="@_count" TItem="WarehouseItem" LoadData="@LoadData">
+<RadzenDataGrid @ref="@_grid" Data="@_data" Count="@_count" TItem="WarehouseItem" IsLoading="_isLoading"
+                AllowSorting AllowFiltering AllowPaging PageSize="5">
     <Columns>
         <RadzenDataGridColumn TItem="WarehouseItem" Property="Id" Title="ID"/>
         <RadzenDataGridColumn TItem="WarehouseItem" Property="Name" Title="Название"/>
@@ -47,6 +49,13 @@
     private List<WarehouseItem> _data = new();
     private int _count;
     private RadzenDataGrid<WarehouseItem> _grid;
+    private bool _isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await UpdateGridAsync();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -54,20 +63,14 @@
             await _grid.Reload();
     }
     
-    private void LoadData(LoadDataArgs args)
-    {
-        _data = MongoContext.Warehouse.AsNoTracking().ToList();
-        _count = _data.Count;
-    }
-    
-    private async void AddData()
+    private async Task AddData()
     {
         _model.Amount = 0;
         if (MongoContext.Warehouse.FirstOrDefault(_ => _.Name == _model.Name && _.MeasureUnit == _model.MeasureUnit) is not null) return;
         MongoContext.Warehouse.Add(_model);
         await MongoContext.SaveChangesAsync();
         _model = new();
-        await _grid.Reload();   
+        await UpdateGridAsync();   
     }
     
     private async Task EditItem(WarehouseItem item)
@@ -81,14 +84,14 @@
     {
         DialogService.OnClose -= EditClose;
         if (obj is null) return;
-        _grid.Reload();
+        UpdateGridAsync();
     }
     
-    private void DeleteItem(WarehouseItem item)
+    private async Task DeleteItem(WarehouseItem item)
     {
         MongoContext.Warehouse.Remove(item);
-        MongoContext.SaveChangesAsync();
-        _grid.Reload();
+        await MongoContext.SaveChangesAsync();
+        await UpdateGridAsync();
     }
     
     private async void ChangeAmount(string itemId, bool isAdd = true)
@@ -97,6 +100,15 @@
         item.Amount += isAdd ? 1 : -1;
         if (item.Amount < 0) item.Amount = 0;
         await MongoContext.SaveChangesAsync();
+        await UpdateGridAsync();
+    }
+    
+    private async Task UpdateGridAsync()
+    {
+        _isLoading = true;
+        _data = await MongoContext.Warehouse.AsNoTracking().ToListAsync();
+        _count = _data.Count;
+        _isLoading = false;
         await _grid.Reload();
     }
 }

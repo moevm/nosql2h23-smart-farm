@@ -1,4 +1,5 @@
 @page "/users"
+@using MongoFramework.Linq
 
 
 <h3>Пользователи</h3>
@@ -37,20 +38,20 @@
     </div>
 </RadzenFieldset>
 
-<RadzenDataGrid @ref="@_grid" Data="@_data" Count="@_count" TItem="User" LoadData="@LoadData"
-                Style="width: 90vw;" AllowColumnResize AllowFiltering AllowPaging ColumnWidth="300px" AllowSorting PageSize="5">
+<RadzenDataGrid @ref="_grid" Data="_data" Count="_count" TItem="User" IsLoading="_isLoading"
+                Style="width: 80vw;" AllowSorting AllowColumnResize AllowFiltering AllowPaging ColumnWidth="200px"  PageSize="5">
     <Columns>
-         <RadzenDataGridColumn Width="200px" Frozen TItem="User" Title="Действия">
+        <RadzenDataGridColumn Width="220px" Sortable="false" Filterable="false" TItem="User" Title="Действия">
             <Template Context="user">
                 <RadzenButton Click="@(_ => EditUser(user))" Icon="build" ButtonStyle="ButtonStyle.Secondary"/>
                 <RadzenButton Click="@(_ => DeleteUser(user))" Icon="highlight_off" ButtonStyle="ButtonStyle.Danger"/>
                 <NavLink href=@($"tasks/{user.Id}") Match="NavLinkMatch.All">
                     <RadzenButton Text="Задания"/>
-                </NavLink>
+                </NavLink>  
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Frozen Width="100px" TItem="User" Property="Id" Title="ID"/>
-        <RadzenDataGridColumn Frozen Width="200px" TItem="User" Property="Name" Title="Имя"/>
+        <RadzenDataGridColumn Width="200px" TItem="User" Property="Name" Title="Имя"/>
+        <RadzenDataGridColumn Width="100px" TItem="User" Property="Id" Title="ID"/>
         <RadzenDataGridColumn Width="150px" TItem="User" Property="Surname" Title="Фамилия"/>
         <RadzenDataGridColumn Width="150px" TItem="User" Property="Patronymic" Title="Отчество"/>
         <RadzenDataGridColumn Width="130px" TItem="User" Property="Role" Title="Роль"/>
@@ -67,33 +68,35 @@
     private List<User> _data = new();
     private int _count;
     private RadzenDataGrid<User> _grid;
+    private bool _isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await UpdateGridAsync();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
             await _grid.Reload();
     }
-
-    private void LoadData(LoadDataArgs args)
-    {
-        _data = MongoContext.Users.AsNoTracking().ToList();
-        _count = _data.Count;
-    }
     
-    private async void AddData()
+    private async Task AddData()
     {
         _model.Tasks = new();
         _model.IsWorking = false;
         MongoContext.Users.Add(_model);
         await MongoContext.SaveChangesAsync();
         _model = new();
-        await _grid.Reload();   
+        await UpdateGridAsync();
     }
 
     private async void DeleteUser(User model)
     {
         MongoContext.Users.Remove(model);
         await MongoContext.SaveChangesAsync();
+        await UpdateGridAsync();
     }
     
     private async Task EditUser(User model)
@@ -107,6 +110,15 @@
     {
         DialogService.OnClose -= EditClose;
         if (obj is null) return;
-        _grid.Reload();
+        UpdateGridAsync();
+    }
+
+    private async Task UpdateGridAsync()
+    {
+        _isLoading = true;
+        _data = await MongoContext.Users.AsNoTracking().ToListAsync();
+        _count = _data.Count;
+        _isLoading = false;
+        await _grid.Reload();
     }
 }

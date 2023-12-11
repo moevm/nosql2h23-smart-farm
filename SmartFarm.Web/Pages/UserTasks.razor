@@ -25,7 +25,7 @@
     <RadzenButton Text="Добавить" Click="AddData"/>
 </RadzenFieldset>
 
-<RadzenDataGrid @ref="@_grid" Data="@_user.Tasks" Count="@(_user.Tasks?.Count ?? 0)" TItem="UserTask" LoadData="@LoadData"
+<RadzenDataGrid @ref="@_grid" Data="@_user.Tasks" Count="@(_user.Tasks?.Count ?? 0)" TItem="UserTask" IsLoading="_isLoading"
                 Style="width: 80vw;" AllowColumnResize AllowFiltering AllowPaging ColumnWidth="300px" AllowSorting PageSize="5">
     <Columns>
          <RadzenDataGridColumn Frozen TItem="UserTask" Title="Действия">
@@ -55,28 +55,21 @@
     private RadzenDataGrid<UserTask> _grid;
     private UserTask _model = new();
     private User _user;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        _user = MongoContext.Users.First(_ => _.Id == UserId);
-    }
+    private bool _isLoading;
     
-    private void LoadData(LoadDataArgs args)
+    protected override async Task OnInitializedAsync()
     {
-        _user = MongoContext.Users.First(_ => _.Id == UserId);
+        await base.OnInitializedAsync();
+        await UpdateGridAsync();
     }
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
             await _grid.Reload();
     }
     
-    
-
-    private async void AddData()
+    private async Task AddData()
     {
         if (_model is {Title: not null, Description: not null} newTask)
         {
@@ -89,14 +82,14 @@
         }
         
         _model = new();
-        await _grid.Reload();
+        await UpdateGridAsync();
     }
     
-    private void DeleteTask(UserTask task)
+    private async Task DeleteTask(UserTask task)
     {
         _user.Tasks?.Remove(task);
-        MongoContext.SaveChangesAsync();
-        _grid.Reload();
+        await MongoContext.SaveChangesAsync();
+        await UpdateGridAsync();
     }
     
     private async Task EditTask(UserTask task)
@@ -110,6 +103,14 @@
     {
         DialogService.OnClose -= EditClose;
         if (obj is null) return;
-        _grid.Reload();
+        UpdateGridAsync();
+    }
+    
+    private async Task UpdateGridAsync()
+    {
+        _isLoading = true;
+        _user = MongoContext.Users.First(_ => _.Id == UserId);
+        _isLoading = false;
+        await _grid.Reload();
     }
 }

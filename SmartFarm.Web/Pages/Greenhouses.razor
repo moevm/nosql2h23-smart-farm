@@ -1,4 +1,5 @@
 @page "/greenhouses"
+@using MongoFramework.Linq
 <RadzenFieldset style="margin: 20px 0;" Text="Добавить теплицу">
     <div style="display: flex; flex-direction: column"></div>
     <div class="block_data" style="display: flex; flex-direction: row;">
@@ -38,7 +39,7 @@
     
 </RadzenFieldset>
 
-<RadzenDataGrid @ref="@_grid" Data="@_data" Count="@_count" TItem="Greenhouse" LoadData="@LoadData"
+<RadzenDataGrid @ref="@_grid" Data="@_data" Count="@_count" TItem="Greenhouse" IsLoading="_isLoading"
                 Style="width: 90vw;" AllowColumnResize AllowFiltering AllowPaging ColumnWidth="300px" AllowSorting PageSize="5">
     <Columns>
          <RadzenDataGridColumn  Width="100px" Frozen TItem="Greenhouse" Title="Действия">
@@ -91,34 +92,35 @@
     private List<Greenhouse> _data = new();
     private int _count;
     private RadzenDataGrid<Greenhouse> _grid;
+    private bool _isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await UpdateGridAsync();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
             await _grid.Reload();
     }
-
-    private void LoadData(LoadDataArgs args)
-    {
-        _data = MongoContext.Greenhouses.AsNoTracking().ToList();
-        _count = _data.Count;
-    }
     
-    private async void AddData()
+    private async Task AddData()
     {
         _model.Plants = new();
         _model.TeamIds = new();
         MongoContext.Greenhouses.Add(_model);
         await MongoContext.SaveChangesAsync();
         _model = new();
-        await _grid.Reload();   
+        await UpdateGridAsync();
     }
     
-    private void DeleteGreenhouse(Greenhouse item)
+    private async Task DeleteGreenhouse(Greenhouse item)
     {
         MongoContext.Greenhouses.Remove(item);
-        MongoContext.SaveChangesAsync();
-        _grid.Reload();
+        await MongoContext.SaveChangesAsync();
+        await UpdateGridAsync();
     }
 
     private async Task EditGreenhouse(Greenhouse model)
@@ -132,6 +134,15 @@
     {
         DialogService.OnClose -= EditClose;
         if (obj is null) return;
-        _grid.Reload();
+        UpdateGridAsync();
+    }
+    
+    private async Task UpdateGridAsync()
+    {
+        _isLoading = true;
+        _data = await MongoContext.Greenhouses.AsNoTracking().ToListAsync();
+        _count = _data.Count;
+        _isLoading = false;
+        await _grid.Reload();
     }
 }
