@@ -10,6 +10,10 @@ docker-compose up --build
 2) Запускаем контейнер mongo:  docker run -d -p 27017:27017 --name mongo mongo:latest
 3) Запускаем через Visual studio сервер.
 
+## гифка скринкаст возможно ещё грузится, подождите
+
+![](https://github.com/moevm/nosql2h23-smart-farm/blob/main/smrtfarm_demo.gif)
+
 # nosql_template
 
 
