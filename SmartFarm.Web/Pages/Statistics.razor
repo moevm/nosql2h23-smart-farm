@@ -6,8 +6,8 @@
     <div style="display: flex; flex-direction: row">
         <RadzenDropDown Placeholder="Продукты" Multiple @bind-Value="search.ProductIds"
                         Data="_dataSorts"/>
-        
-        
+        <RadzenDropDown Placeholder="Теплицы" Multiple @bind-Value="search.GreenhouseIds"
+                                Data="_dataGreenhouses" TextProperty="@nameof(Greenhouse.Number)" ValueProperty="@nameof(Greenhouse.Id)"/>
     </div>
     <RadzenButton Click="@SearchAsync" Text="Поиск" Style="width:200px; padding: 10px; margin: auto" ButtonStyle="ButtonStyle.Primary" />
     
