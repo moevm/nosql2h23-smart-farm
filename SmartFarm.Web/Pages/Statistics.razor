@@ -18,7 +18,7 @@
         <RadzenDataGridColumn TItem="PlantStatistic" Property="Sort" Title="Сорт"/>
         <RadzenDataGridColumn TItem="PlantStatistic" Property="Type" Title="Тип"/>
         <RadzenDataGridColumn TItem="PlantStatistic" Property="Count" Title="Количество"/>
-        <RadzenDataGridColumn TItem="PlantStatistic">
+        <RadzenDataGridColumn TItem="PlantStatistic" Property="Count" Title="Теплица">
             <Template Context="plant">
                 @foreach (var number in plant.Greenhouses)
                 {
