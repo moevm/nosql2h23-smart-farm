@@ -1,0 +1,122 @@
+@page "/statistics"
+
+@using MongoFramework.Linq
+
+<h1 style="margin: auto"> Статистика </h1>
+    <div style="display: flex; flex-direction: row">
+        <RadzenDropDown Placeholder="Продукты" Multiple @bind-Value="search.ProductIds"
+                        Data="_dataSorts"/>
+        
+        
+    </div>
+    <RadzenButton Click="@SearchAsync" Text="Поиск" Style="width:200px; padding: 10px; margin: auto" ButtonStyle="ButtonStyle.Primary" />
+    
+
+<RadzenDataGrid @ref="@_grid" Data="@_dataForGrid" Count="@_count" TItem="PlantStatistic" Visible="@showTable"
+                Style="width: 80vw;" AllowColumnResize AllowFiltering ColumnWidth="250px" AllowSorting>
+    <Columns>
+        <RadzenDataGridColumn TItem="PlantStatistic" Property="Sort" Title="Сорт"/>
+        <RadzenDataGridColumn TItem="PlantStatistic" Property="Type" Title="Тип"/>
+        <RadzenDataGridColumn TItem="PlantStatistic" Property="Count" Title="Количество"/>
+        <RadzenDataGridColumn TItem="PlantStatistic">
+            <Template Context="plant">
+                @foreach (var number in plant.Greenhouses)
+                {
+                    <p>Теплица № @number</p>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>    
+
+
+
+
+
+@code{
+    [Inject] ApplicationMongoContext MongoContext { get; set; }
+
+    public class Filter : ICloneable
+    {
+        public List<string> ProductIds { get; set; } = new();
+        public List<string> GreenhouseIds { get; set; } = new();
+
+        public object Clone()
+        {
+            var clone = (Filter)MemberwiseClone();
+            clone.ProductIds = ProductIds.ToList();
+            clone.GreenhouseIds = GreenhouseIds.ToList();
+            return clone;
+        }
+    }
+
+    public class PlantStatistic
+    {
+        public string Sort { get; set; }
+        public string Type { get; set; }
+        public int Count { get; set; }
+        public List<int> Greenhouses { get; set; } = new();
+    }
+
+    public record PlantModel(string Sort, string Type, int Count, Greenhouse Greenhouse);
+
+    private Filter search = new();
+    private List<PlantModel> _dataPlants = new();
+    private List<PlantStatistic> _dataForGrid = new();
+    private List<Greenhouse> _dataGreenhouses = new();
+    private HashSet<string> _dataSorts = new();
+    private int _count;
+    private bool showTable;
+    private RadzenDataGrid<PlantStatistic> _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dataGreenhouses = await MongoContext.Greenhouses.AsNoTracking().ToListAsync();
+            _dataGreenhouses.ForEach(greenhouse =>
+            {
+                if (greenhouse.Plants is {Count: > 0} plants)
+                    plants.ForEach(plant =>
+                    {
+                        _dataPlants.Add(new PlantModel(plant.Sort, plant.Type, plant.Count, greenhouse));
+                    });
+            });
+            _dataSorts = _dataPlants.Select(plant => plant.Sort).ToHashSet();
+        }
+    }
+
+    public async Task SearchAsync()
+    {
+        showTable = false;
+        _dataForGrid = new List<PlantStatistic>();
+        _dataPlants.Where(model => search.ProductIds.Contains(model.Sort) && search.GreenhouseIds.Contains(model.Greenhouse.Id)).ToList().ForEach(model =>
+        {
+            if (_dataForGrid.FirstOrDefault(value => value.Sort == model.Sort) is {} res)
+            {
+                res.Count += model.Count;
+                if(!res.Greenhouses.Contains(model.Greenhouse.Number))
+                    res.Greenhouses.Add(model.Greenhouse.Number);
+            }
+            else
+            {                
+                _dataForGrid.Add(new PlantStatistic
+                {
+                    Sort = model.Sort,
+                    Type = model.Type,
+                    Count = model.Count,
+                    Greenhouses = new List<int> {model.Greenhouse.Number}
+                });
+            }
+        });
+        
+        _count = _dataForGrid.Count;
+        await _grid.Reload();
+        showTable = true;
+    }
+}
